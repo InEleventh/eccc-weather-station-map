@@ -131,7 +131,13 @@ stationMap.on('click', e =>{
 
 stationMap.on('zoomend', () =>{
     var zoomLevel = stationMap.getZoom()
-    //console.log(zoomLevel)
+    
+    if (zoomLevel < 6 && stationMap.hasLayer(stationMarkers)){
+        stationMap.removeLayer(stationMarkers)
+    }
+    if (zoomLevel >= 6 && !stationMap.hasLayer(stationMarkers)) {
+        stationMap.addLayer(stationMarkers)
+    }
 })
 
 function placeMarkersInBounds() {
