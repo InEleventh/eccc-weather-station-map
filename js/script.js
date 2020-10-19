@@ -28,6 +28,8 @@ async function displayShortest(location) {
         }
     })
 
+    document.getElementById('closest-stations').innerHTML = `Closest Stations to (${location[0].toFixed(2)}, ${location[1].toFixed(2)})`
+
     var table = document.getElementById('closest')
     
     var tableLen = table.rows.length
