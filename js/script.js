@@ -48,6 +48,12 @@ async function displayShortest(location) {
         
         var loc = row.insertCell()
         loc.innerHTML = `(${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']})`
+
+        var firstYear = row.insertCell()
+        firstYear.innerHTML = stations[i]['First Year']
+
+        var lastYear = row.insertCell()
+        lastYear.innerHTML = stations[i]['Last Year']
         
         var distance = row.insertCell()
         distance.innerHTML = calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']]).toFixed(5)
@@ -56,11 +62,8 @@ async function displayShortest(location) {
 }
 
 function calcDistance(coor1, coor2) {
-    var a = coor1[0] - coor2[0]
-    var b = coor1[1] - coor2[1]
-    var distDeg = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2))
-    var distMeters = distDeg * 111139
-    return distDeg
+    var distance = L.latLng(coor1).distanceTo(coor2)
+    return distance
 }
 
 
