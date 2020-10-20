@@ -80,6 +80,14 @@ var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
 }).addTo(stationMap);
 
+var iconOrange = L.icon({
+    iconUrl: 'img/icons/marker-icon-2x-orange.png',
+    shadowUrl: 'img/icons/marker-shadow.png',
+    iconSize: [25, 41],
+	iconAnchor: [12, 41],
+	popupAnchor: [1, -34],
+	shadowSize: [41, 41]
+})
 
 var stationMarkers = L.markerClusterGroup({
     removeOutsideVisibleBounds: true,
@@ -98,7 +106,7 @@ readCSV('csv/Station_Inventory_EN.csv')
             var id = item['Station ID']
 
             var popText = `StationID: ${id} <br> Name: ${name}`
-            var marker = L.marker([lat, lng]).bindPopup(popText)
+            var marker = L.marker([lat, lng], {icon: iconOrange}).bindPopup(popText)
 
             stationMarkers.addLayer(marker)
         }
