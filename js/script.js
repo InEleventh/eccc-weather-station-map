@@ -85,7 +85,7 @@ var stationMarkers = L.markerClusterGroup({
     removeOutsideVisibleBounds: true,
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: false,
-    disableClusteringAtZoom: 12,
+    disableClusteringAtZoom: 13,
     maxClusterRadius: 150,
 })
 
