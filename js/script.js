@@ -56,7 +56,7 @@ async function displayShortest(location) {
         lastYear.innerHTML = stations[i]['Last Year']
         
         var distance = row.insertCell()
-        distance.innerHTML = calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']]).toFixed(5)
+        distance.innerHTML = calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']]).toFixed(2)
 
     }
 }
