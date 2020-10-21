@@ -58,12 +58,19 @@ async function displayShortest(location) {
         var distance = row.insertCell()
         distance.innerHTML = calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']]).toFixed(2)
 
+        var goToButton = row.insertCell()
+        goToButton.innerHTML = `<button type="button" class="btn btn-primary" onclick="goToLocation([${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}])">Go to</button>`
+
     }
 }
 
 function calcDistance(coor1, coor2) {
     var distance = L.latLng(coor1).distanceTo(coor2)
     return distance
+}
+
+function goToLocation(location) {
+    stationMap.flyTo(location, 15)
 }
 
 
