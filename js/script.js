@@ -48,9 +48,6 @@ async function displayShortest(location) {
         
         var name = row.insertCell()
         name.innerHTML = stations[i]['Name']
-        
-        var loc = row.insertCell()
-        loc.innerHTML = `(${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']})`
 
         var hourly = row.insertCell()
         hourly.innerHTML = `${stations[i]['HLY First Year']}-${stations[i]['HLY Last Year']}`
@@ -60,6 +57,9 @@ async function displayShortest(location) {
 
         var monthly = row.insertCell()
         monthly.innerHTML = `${stations[i]['MLY First Year']}-${stations[i]['MLY Last Year']}`
+
+        var loc = row.insertCell()
+        loc.innerHTML = `${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}`
         
         var distance = row.insertCell()
         distance.innerHTML = (calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']])/1000).toFixed(2)
@@ -120,8 +120,16 @@ readCSV('csv/Station_Inventory_EN.csv')
             var name = item['Name']
             var stationID = item['Station ID']
             var climateID = item['Climate ID']
+            var hourly = `${item['HLY First Year']}-${item['HLY Last Year']}`
+            var daily = `${item['DLY First Year']}-${item['DLY Last Year']}`
+            var monthly = `${item['MLY First Year']}-${item['MLY Last Year']}`
 
-            var popText = `<b>${name}</b> <br> Station ID: ${stationID} <br> Climate ID: ${climateID}`
+            var popText = `<b>${name}</b> <br> 
+                Station ID: ${stationID} <br> 
+                Climate ID: ${climateID} <br>
+                Hourly Record: ${hourly} <br>
+                Daily Record: ${daily} <br>
+                Monthly Record: ${monthly} <br>`
             var marker = L.marker([lat, lng], {icon: iconOrange}).bindPopup(popText)
 
             stationMarkers.addLayer(marker)
