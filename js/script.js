@@ -40,8 +40,11 @@ async function displayShortest(location) {
     for (var i=0; i< 5; i++){
         var row = table.insertRow()
         
-        var id = row.insertCell()
-        id.innerHTML = stations[i]['Station ID']
+        var stationID = row.insertCell()
+        stationID.innerHTML = stations[i]['Station ID']
+
+        var climateID = row.insertCell()
+        climateID.innerHTML = stations[i]['Climate ID']
         
         var name = row.insertCell()
         name.innerHTML = stations[i]['Name']
@@ -49,18 +52,20 @@ async function displayShortest(location) {
         var loc = row.insertCell()
         loc.innerHTML = `(${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']})`
 
-        var firstYear = row.insertCell()
-        firstYear.innerHTML = stations[i]['First Year']
+        var hourly = row.insertCell()
+        hourly.innerHTML = `${stations[i]['HLY First Year']}-${stations[i]['HLY Last Year']}`
 
-        var lastYear = row.insertCell()
-        lastYear.innerHTML = stations[i]['Last Year']
+        var daily = row.insertCell()
+        daily.innerHTML = `${stations[i]['DLY First Year']}-${stations[i]['DLY Last Year']}`
+
+        var monthly = row.insertCell()
+        monthly.innerHTML = `${stations[i]['MLY First Year']}-${stations[i]['MLY Last Year']}`
         
         var distance = row.insertCell()
-        distance.innerHTML = calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']]).toFixed(2)
+        distance.innerHTML = (calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']])/1000).toFixed(2)
 
         var goToButton = row.insertCell()
-        goToButton.innerHTML = `<button type="button" class="btn btn-primary" onclick="goToLocation([${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}])">Go to</button>`
-
+        goToButton.innerHTML = `<button type="button" class="btn btn-primary btn-sm" onclick="goToLocation([${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}])">Go to</button>`
     }
 }
 
@@ -73,6 +78,9 @@ function goToLocation(location) {
     stationMap.flyTo(location, 15)
 }
 
+function something(){
+
+}
 
 //map------------------------------------------------------------------------------
 var stationMap = L.map('stationMap', {
@@ -110,9 +118,10 @@ readCSV('csv/Station_Inventory_EN.csv')
             var lat = item['Latitude (Decimal Degrees)']
             var lng = item['Longitude (Decimal Degrees)']
             var name = item['Name']
-            var id = item['Station ID']
+            var stationID = item['Station ID']
+            var climateID = item['Climate ID']
 
-            var popText = `StationID: ${id} <br> Name: ${name}`
+            var popText = `<b>${name}</b> <br> Station ID: ${stationID} <br> Climate ID: ${climateID}`
             var marker = L.marker([lat, lng], {icon: iconOrange}).bindPopup(popText)
 
             stationMarkers.addLayer(marker)
@@ -136,10 +145,11 @@ stationMap.on('click', e =>{
     var popup = L.popup()
     var lat = e.latlng.lat
     var lng = e.latlng.lng
-    popup
+    
+    /* popup
         .setLatLng(e.latlng)
         .setContent("You clicked the map at " + lat.toFixed(2) + ', ' + lng.toFixed(2))
-        .openOn(stationMap);
+        .openOn(stationMap); */
 
     displayShortest([lat, lng])
 })
