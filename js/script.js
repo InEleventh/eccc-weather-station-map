@@ -31,38 +31,47 @@ async function displayShortest(location) {
     document.getElementById('closest-stations').innerHTML = `Closest Stations to (${location[0].toFixed(2)}, ${location[1].toFixed(2)})`
 
     var table = document.getElementById('closest')
-    
+
     var tableLen = table.rows.length
-    for (var i=0; i< tableLen-1; i++){
+    for (var i = 0; i < tableLen - 1; i++) {
         table.deleteRow(1)
     }
 
-    for (var i=0; i< 5; i++){
+    for (var i = 0; i < 5; i++) {
         var row = table.insertRow()
-        
+
         var stationID = row.insertCell()
         stationID.innerHTML = stations[i]['Station ID']
 
         var climateID = row.insertCell()
         climateID.innerHTML = stations[i]['Climate ID']
-        
+
         var name = row.insertCell()
         name.innerHTML = stations[i]['Name']
 
         var hourly = row.insertCell()
         hourly.innerHTML = `${stations[i]['HLY First Year']}-${stations[i]['HLY Last Year']}`
+        if (stations[i]['HLY First Year'] != ''){
+            hourly.innerHTML = hourly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['HLY Last Year'], 1)}'">Download</button>`
+        }
 
         var daily = row.insertCell()
         daily.innerHTML = `${stations[i]['DLY First Year']}-${stations[i]['DLY Last Year']}`
+        if (stations[i]['DLY First Year'] != ''){
+            daily.innerHTML = daily.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['DLY Last Year'], 1)}'">Download</button>`
+        }
 
         var monthly = row.insertCell()
         monthly.innerHTML = `${stations[i]['MLY First Year']}-${stations[i]['MLY Last Year']}`
+        if (stations[i]['MLY First Year'] != ''){
+            monthly.innerHTML = monthly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['MLY Last Year'], 1)}'">Download</button>`
+        }
 
         var loc = row.insertCell()
         loc.innerHTML = `${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}`
-        
+
         var distance = row.insertCell()
-        distance.innerHTML = (calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']])/1000).toFixed(2)
+        distance.innerHTML = (calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']]) / 1000).toFixed(2)
 
         var goToButton = row.insertCell()
         goToButton.innerHTML = `<button type="button" class="btn btn-primary btn-sm" onclick="goToLocation([${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}])">Go to</button>`
@@ -74,12 +83,12 @@ function calcDistance(coor1, coor2) {
     return distance
 }
 
-function goToLocation(location) {
-    stationMap.flyTo(location, 15)
+function createStationURL(stationID, year, timeframe){
+    return `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=${stationID}&Year=${year}&Month=${12}&Day=14&timeframe=${timeframe}&submit=Download+Data`
 }
 
-function something(){
-
+function goToLocation(location) {
+    stationMap.flyTo(location, 15)
 }
 
 //map------------------------------------------------------------------------------
@@ -99,9 +108,9 @@ var iconOrange = L.icon({
     iconUrl: 'img/icons/marker-icon-2x-orange.png',
     shadowUrl: 'img/icons/marker-shadow.png',
     iconSize: [25, 41],
-	iconAnchor: [12, 41],
-	popupAnchor: [1, -34],
-	shadowSize: [41, 41]
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
 })
 
 var stationMarkers = L.markerClusterGroup({
@@ -109,7 +118,7 @@ var stationMarkers = L.markerClusterGroup({
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: false,
     disableClusteringAtZoom: 13,
-    maxClusterRadius: 150,
+    maxClusterRadius: 100,
 })
 
 readCSV('csv/Station_Inventory_EN.csv')
@@ -130,7 +139,7 @@ readCSV('csv/Station_Inventory_EN.csv')
                 Hourly Record: ${hourly} <br>
                 Daily Record: ${daily} <br>
                 Monthly Record: ${monthly} <br>`
-            var marker = L.marker([lat, lng], {icon: iconOrange}).bindPopup(popText)
+            var marker = L.marker([lat, lng], { icon: iconOrange }).bindPopup(popText)
 
             stationMarkers.addLayer(marker)
         }
@@ -149,11 +158,11 @@ var mapLayers = {
 L.control.layers(baseMaps, mapLayers).addTo(stationMap)
 
 //map events
-stationMap.on('click', e =>{
+stationMap.on('click', e => {
     var popup = L.popup()
     var lat = e.latlng.lat
     var lng = e.latlng.lng
-    
+
     /* popup
         .setLatLng(e.latlng)
         .setContent("You clicked the map at " + lat.toFixed(2) + ', ' + lng.toFixed(2))
@@ -162,15 +171,15 @@ stationMap.on('click', e =>{
     displayShortest([lat, lng])
 })
 
-stationMap.on('zoomend', () =>{
+stationMap.on('zoomend', () => {
     var zoomLevel = stationMap.getZoom()
-    
-    if (zoomLevel < 6 && stationMap.hasLayer(stationMarkers)){
+
+    /* if (zoomLevel < 6 && stationMap.hasLayer(stationMarkers)){
         stationMap.removeLayer(stationMarkers)
     }
     if (zoomLevel >= 6 && !stationMap.hasLayer(stationMarkers)) {
         stationMap.addLayer(stationMarkers)
-    }
+    } */
 })
 
 function placeMarkersInBounds() {
