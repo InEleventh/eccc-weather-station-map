@@ -51,20 +51,20 @@ async function displayShortest(location) {
 
         var hourly = row.insertCell()
         hourly.innerHTML = `${stations[i]['HLY First Year']}-${stations[i]['HLY Last Year']}`
-        if (stations[i]['HLY First Year'] != ''){
-            hourly.innerHTML = hourly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['HLY Last Year'], 1)}'">Download</button>`
+        if (stations[i]['HLY First Year'] != '') {
+            hourly.innerHTML = hourly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['HLY Last Year'], 1, 1)}'">Download</button>`
         }
 
         var daily = row.insertCell()
         daily.innerHTML = `${stations[i]['DLY First Year']}-${stations[i]['DLY Last Year']}`
-        if (stations[i]['DLY First Year'] != ''){
-            daily.innerHTML = daily.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['DLY Last Year'], 1)}'">Download</button>`
+        if (stations[i]['DLY First Year'] != '') {
+            daily.innerHTML = daily.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="downloadStationData(${stations[i]['Station ID']}, ${stations[i]['DLY First Year']}, ${stations[i]['DLY Last Year']}, ${2})">Download</button>`
         }
 
         var monthly = row.insertCell()
         monthly.innerHTML = `${stations[i]['MLY First Year']}-${stations[i]['MLY Last Year']}`
-        if (stations[i]['MLY First Year'] != ''){
-            monthly.innerHTML = monthly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['MLY Last Year'], 1)}'">Download</button>`
+        if (stations[i]['MLY First Year'] != '') {
+            monthly.innerHTML = monthly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="downloadStationData(${stations[i]['Station ID']}, ${stations[i]['MLY First Year']}, ${stations[i]['MLY Last Year']}, ${3})">Download</button>`
         }
 
         var loc = row.insertCell()
@@ -83,13 +83,60 @@ function calcDistance(coor1, coor2) {
     return distance
 }
 
-function createStationURL(stationID, year, timeframe){
-    return `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=${stationID}&Year=${year}&Month=${12}&Day=14&timeframe=${timeframe}&submit=Download+Data`
+function createStationURL(stationID, year, month, timeframe) {
+    return `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=${stationID}&Year=${year}&Month=${month}&Day=14&timeframe=${timeframe}&submit=Download+Data`
 }
 
 function goToLocation(location) {
     stationMap.flyTo(location, 15)
+    document.getElementById('stationMap').scrollIntoView()
 }
+
+function downloadStationData(stationID, firstYear, lastYear, timeframe) {
+    if (timeframe === 3) {
+        var link = createStationURL(stationID, lastYear, 1, timeframe)
+        window.open(link)
+    } else if (timeframe === 2) {
+        for (var year = firstYear; year <= lastYear; year++) {
+            var link = createStationURL(stationID, year, 1, timeframe)
+            window.open(link)
+        }
+    } else if (timeframe === 1) {
+        for (var year = firstYear; year <= lastYear; year++) {
+            for (var month = 1; month<=12; month++) {
+                var link = createStationURL(stationID, year, month, timeframe)
+                window.open(link)
+            }
+        }
+    }
+}
+
+async function test(){
+    var proxyUrl = 'https://cors-anywhere.herokuapp.com/'
+    var all = []
+    
+    for (var year = 2018; year<=2020; year++) {
+        var url = `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=54239&Year=${year}&Month=5&Day=14&timeframe=2&submit=Download+Data`
+        var response = await fetch(proxyUrl+url)
+        var csvData = await response.text()
+        var data = Papa.parse(csvData, {
+            header: true,
+            complete: function (results) {
+                //add something if needed
+            }
+        })
+        all = all.concat(data.data)
+    }
+    var newCSV = Papa.unparse(all)
+    console.log(newCSV)
+
+    var link = document.createElement('a')
+    link.href = 'data:text/csv;charset=utf-8' + encodeURI(newCSV)
+    link.target = '_blank'
+    link.download = 'test.csv'
+    link.click()
+}
+test()
 
 //map------------------------------------------------------------------------------
 var stationMap = L.map('stationMap', {
