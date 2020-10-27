@@ -136,7 +136,6 @@ async function test(){
     link.download = 'test.csv'
     link.click()
 }
-test()
 
 //map------------------------------------------------------------------------------
 var stationMap = L.map('stationMap', {
