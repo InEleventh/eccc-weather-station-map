@@ -30,11 +30,11 @@ async function displayShortest(location) {
 
     document.getElementById('closest-stations').innerHTML = `Closest Stations to (${location[0].toFixed(2)}, ${location[1].toFixed(2)})`
 
-    var table = document.getElementById('closest')
+    var table = document.getElementById('closest').tBodies[0]
 
     var tableLen = table.rows.length
-    for (var i = 0; i < tableLen - 1; i++) {
-        table.deleteRow(1)
+    for (var i = 0; i < tableLen; i++) {
+        table.deleteRow(0)
     }
 
     for (var i = 0; i < 5; i++) {
@@ -51,13 +51,13 @@ async function displayShortest(location) {
 
         var hourly = row.insertCell()
         hourly.innerHTML = `${stations[i]['HLY First Year']}-${stations[i]['HLY Last Year']}`
-        if (stations[i]['HLY First Year'] != '') {
+        if (stations[i]['HLY First Year'] === 'asdf') { //fix later
             hourly.innerHTML = hourly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['HLY Last Year'], 1, 1)}'">Download</button>`
         }
 
         var daily = row.insertCell()
         daily.innerHTML = `${stations[i]['DLY First Year']}-${stations[i]['DLY Last Year']}`
-        if (stations[i]['DLY First Year'] != '') {
+        if (stations[i]['DLY First Year'] === 'asdf') { //fix later
             daily.innerHTML = daily.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="downloadStationData(${stations[i]['Station ID']}, ${stations[i]['DLY First Year']}, ${stations[i]['DLY Last Year']}, ${2})">Download</button>`
         }
 
@@ -68,13 +68,10 @@ async function displayShortest(location) {
         }
 
         var loc = row.insertCell()
-        loc.innerHTML = `${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}`
+        loc.innerHTML = `${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']} <br> <button type="button" class="btn btn-primary btn-sm" onclick="goToLocation([${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}])">Go to</button>`
 
         var distance = row.insertCell()
         distance.innerHTML = (calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']]) / 1000).toFixed(2)
-
-        var goToButton = row.insertCell()
-        goToButton.innerHTML = `<button type="button" class="btn btn-primary btn-sm" onclick="goToLocation([${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}])">Go to</button>`
     }
 }
 
@@ -103,7 +100,7 @@ function downloadStationData(stationID, firstYear, lastYear, timeframe) {
         }
     } else if (timeframe === 1) {
         for (var year = firstYear; year <= lastYear; year++) {
-            for (var month = 1; month<=12; month++) {
+            for (var month = 1; month <= 12; month++) {
                 var link = createStationURL(stationID, year, month, timeframe)
                 window.open(link)
             }
@@ -111,13 +108,13 @@ function downloadStationData(stationID, firstYear, lastYear, timeframe) {
     }
 }
 
-async function test(){
+async function test() {
     var proxyUrl = 'https://cors-anywhere.herokuapp.com/'
     var all = []
-    
-    for (var year = 2018; year<=2020; year++) {
+
+    for (var year = 2018; year <= 2020; year++) {
         var url = `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=54239&Year=${year}&Month=5&Day=14&timeframe=2&submit=Download+Data`
-        var response = await fetch(proxyUrl+url)
+        var response = await fetch(proxyUrl + url)
         var csvData = await response.text()
         var data = Papa.parse(csvData, {
             header: true,
@@ -125,15 +122,81 @@ async function test(){
                 //add something if needed
             }
         })
-        all = all.concat(data.data)
+        var array = data.data
+        array.pop()
+        all = all.concat(array)
     }
     var newCSV = Papa.unparse(all)
     console.log(newCSV)
 
     var link = document.createElement('a')
-    link.href = 'data:text/csv;charset=utf-8' + encodeURI(newCSV)
+    link.href = 'data:attachment/csv,' + encodeURI(newCSV)
     link.target = '_blank'
     link.download = 'test.csv'
+    link.click()
+}
+
+async function downloadData(stationID, firstYear, lastYear, timeframe) {
+    var proxyUrl = 'https://cors-anywhere.herokuapp.com/'
+    var all = []
+    var fileName = stationID
+    var timeName = ''
+
+    if (timeframe === 3) {
+        var url = createStationURL(stationID, firstYear, 12, timeframe)
+        var response = await fetch(proxyUrl + url)
+        var csvData = await response.text()
+        var data = Papa.parse(csvData, {
+            header: true,
+            complete: function (results) {
+                //add something if needed
+            }
+        })
+        var array = data.data
+        array.pop()
+        all = all.concat(array)
+        timeName = 'monthly'
+    } else if (timeframe === 2) {
+        for (var year = firstYear; year <= lastYear; year++) {
+            var url = createStationURL(stationID, year, 1, timeframe)
+            var response = await fetch(proxyUrl + url)
+            var csvData = await response.text()
+            var data = Papa.parse(csvData, {
+                header: true,
+                complete: function (results) {
+                    //add something if needed
+                }
+            })
+            var array = data.data
+            array.pop()
+            all = all.concat(array)
+        }
+        timeName = 'daily'
+    } else if (timeframe === 1) {
+        for (var year = firstYear; year <= lastYear; year++) {
+            for (var month = 1; month <= 12; month++) {
+                var url = createStationURL(stationID, year, month, timeframe)
+            }
+            var response = await fetch(proxyUrl + url)
+            var csvData = await response.text()
+            var data = Papa.parse(csvData, {
+                header: true,
+                complete: function (results) {
+                    //add something if needed
+                }
+            })
+            var array = data.data
+            array.pop()
+            all = all.concat(array)
+        }
+        timeName = 'hourly'
+    }
+
+    var newCSV = Papa.unparse(all)
+    var link = document.createElement('a')
+    link.href = 'data:attachment/csv,' + encodeURI(newCSV)
+    link.target = '_blank'
+    link.download = `${fileName} ${timeName} ${firstYear}-${lastYear}.csv`
     link.click()
 }
 
