@@ -1,8 +1,8 @@
 async function readCSV(csvFile) {
-    var response = await fetch(csvFile)
-    var csvData = await response.text()
+    let response = await fetch(csvFile)
+    let csvData = await response.text()
 
-    var data = Papa.parse(csvData, {
+    let data = Papa.parse(csvData, {
         header: true,
         complete: function (results) {
             //add something if needed
@@ -13,11 +13,11 @@ async function readCSV(csvFile) {
 }
 
 async function displayShortest(location) {
-    var stations = await readCSV('csv/Station_Inventory_EN.csv')
+    let stations = await readCSV('csv/Station_Inventory_EN.csv')
 
     stations.sort((a, b) => {
-        var distanceA = calcDistance(location, [a['Latitude (Decimal Degrees)'], a['Longitude (Decimal Degrees)']])
-        var distanceB = calcDistance(location, [b['Latitude (Decimal Degrees)'], b['Longitude (Decimal Degrees)']])
+        const distanceA = calcDistance(location, [a['Latitude (Decimal Degrees)'], a['Longitude (Decimal Degrees)']])
+        const distanceB = calcDistance(location, [b['Latitude (Decimal Degrees)'], b['Longitude (Decimal Degrees)']])
 
         if (distanceA < distanceB) {
             return -1
@@ -30,53 +30,53 @@ async function displayShortest(location) {
 
     document.getElementById('closest-stations').innerHTML = `Closest Stations to (${location[0].toFixed(2)}, ${location[1].toFixed(2)})`
 
-    var table = document.getElementById('closest').tBodies[0]
+    const table = document.getElementById('closest').tBodies[0]
 
-    var tableLen = table.rows.length
-    for (var i = 0; i < tableLen; i++) {
+    const tableLen = table.rows.length
+    for (let i = 0; i < tableLen; i++) {
         table.deleteRow(0)
     }
 
-    for (var i = 0; i < 5; i++) {
-        var row = table.insertRow()
+    for (let i = 0; i < 5; i++) {
+        let row = table.insertRow()
 
-        var stationID = row.insertCell()
+        let stationID = row.insertCell()
         stationID.innerHTML = stations[i]['Station ID']
 
-        var climateID = row.insertCell()
+        let climateID = row.insertCell()
         climateID.innerHTML = stations[i]['Climate ID']
 
-        var name = row.insertCell()
+        let name = row.insertCell()
         name.innerHTML = stations[i]['Name']
 
-        var hourly = row.insertCell()
+        let hourly = row.insertCell()
         hourly.innerHTML = `${stations[i]['HLY First Year']}-${stations[i]['HLY Last Year']}`
         if (stations[i]['HLY First Year'] === 'asdf') { //fix later
             hourly.innerHTML = hourly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['HLY Last Year'], 1, 1)}'">Download</button>`
         }
 
-        var daily = row.insertCell()
+        let daily = row.insertCell()
         daily.innerHTML = `${stations[i]['DLY First Year']}-${stations[i]['DLY Last Year']}`
         if (stations[i]['DLY First Year'] === 'asdf') { //fix later
             daily.innerHTML = daily.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="downloadStationData(${stations[i]['Station ID']}, ${stations[i]['DLY First Year']}, ${stations[i]['DLY Last Year']}, ${2})">Download</button>`
         }
 
-        var monthly = row.insertCell()
+        let monthly = row.insertCell()
         monthly.innerHTML = `${stations[i]['MLY First Year']}-${stations[i]['MLY Last Year']}`
         if (stations[i]['MLY First Year'] != '') {
             monthly.innerHTML = monthly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="downloadStationData(${stations[i]['Station ID']}, ${stations[i]['MLY First Year']}, ${stations[i]['MLY Last Year']}, ${3})">Download</button>`
         }
 
-        var loc = row.insertCell()
+        let loc = row.insertCell()
         loc.innerHTML = `${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']} <br> <button type="button" class="btn btn-primary btn-sm" onclick="goToLocation([${stations[i]['Latitude (Decimal Degrees)']}, ${stations[i]['Longitude (Decimal Degrees)']}])">Go to</button>`
 
-        var distance = row.insertCell()
+        let distance = row.insertCell()
         distance.innerHTML = (calcDistance(location, [stations[i]['Latitude (Decimal Degrees)'], stations[i]['Longitude (Decimal Degrees)']]) / 1000).toFixed(2)
     }
 }
 
 function calcDistance(coor1, coor2) {
-    var distance = L.latLng(coor1).distanceTo(coor2)
+    let distance = L.latLng(coor1).distanceTo(coor2)
     return distance
 }
 
@@ -201,19 +201,19 @@ async function downloadData(stationID, firstYear, lastYear, timeframe) {
 }
 
 //map------------------------------------------------------------------------------
-var stationMap = L.map('stationMap', {
+const stationMap = L.map('stationMap', {
     center: [43.71, -79.41],
     zoom: 10,
     maxBounds: [[84.96, -171.21], [36.74, -44.74]],
     minZoom: 3,
 })
 
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
 }).addTo(stationMap);
 
-var iconOrange = L.icon({
+const iconOrange = L.icon({
     iconUrl: 'img/icons/marker-icon-2x-orange.png',
     shadowUrl: 'img/icons/marker-shadow.png',
     iconSize: [25, 41],
@@ -222,7 +222,7 @@ var iconOrange = L.icon({
     shadowSize: [41, 41]
 })
 
-var stationMarkers = L.markerClusterGroup({
+const stationMarkers = L.markerClusterGroup({
     removeOutsideVisibleBounds: true,
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: false,
@@ -233,22 +233,19 @@ var stationMarkers = L.markerClusterGroup({
 readCSV('csv/Station_Inventory_EN.csv')
     .then(data => {
         for (var item of data) {
-            var lat = item['Latitude (Decimal Degrees)']
-            var lng = item['Longitude (Decimal Degrees)']
-            var name = item['Name']
-            var stationID = item['Station ID']
-            var climateID = item['Climate ID']
-            var hourly = `${item['HLY First Year']}-${item['HLY Last Year']}`
-            var daily = `${item['DLY First Year']}-${item['DLY Last Year']}`
-            var monthly = `${item['MLY First Year']}-${item['MLY Last Year']}`
+            const lat = item['Latitude (Decimal Degrees)']
+            const lng = item['Longitude (Decimal Degrees)']
+            const hourly = `${item['HLY First Year']}-${item['HLY Last Year']}`
+            const daily = `${item['DLY First Year']}-${item['DLY Last Year']}`
+            const monthly = `${item['MLY First Year']}-${item['MLY Last Year']}`
 
-            var popText = `<b>${name}</b> <br> 
-                Station ID: ${stationID} <br> 
-                Climate ID: ${climateID} <br>
+            let popText = `<b>${item['Name']}</b> <br> 
+                Station ID: ${item['Station ID']} <br> 
+                Climate ID: ${item['Climate ID']} <br>
                 Hourly Record: ${hourly} <br>
                 Daily Record: ${daily} <br>
                 Monthly Record: ${monthly} <br>`
-            var marker = L.marker([lat, lng], { icon: iconOrange }).bindPopup(popText)
+            let marker = L.marker([lat, lng], { icon: iconOrange }).bindPopup(popText)
 
             stationMarkers.addLayer(marker)
         }
@@ -256,11 +253,11 @@ readCSV('csv/Station_Inventory_EN.csv')
 
 stationMarkers.addTo(stationMap)
 
-var baseMaps = {
+let baseMaps = {
     "OpenStreetMap": osm
 }
 
-var mapLayers = {
+let mapLayers = {
     "Weather Stations": stationMarkers,
 }
 
@@ -268,9 +265,9 @@ L.control.layers(baseMaps, mapLayers).addTo(stationMap)
 
 //map events
 stationMap.on('click', e => {
-    var popup = L.popup()
-    var lat = e.latlng.lat
-    var lng = e.latlng.lng
+    let popup = L.popup()
+    const lat = e.latlng.lat
+    const lng = e.latlng.lng
 
     /* popup
         .setLatLng(e.latlng)
@@ -281,7 +278,7 @@ stationMap.on('click', e => {
 })
 
 stationMap.on('zoomend', () => {
-    var zoomLevel = stationMap.getZoom()
+    const zoomLevel = stationMap.getZoom()
 
     /* if (zoomLevel < 6 && stationMap.hasLayer(stationMarkers)){
         stationMap.removeLayer(stationMarkers)
