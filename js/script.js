@@ -51,20 +51,20 @@ async function displayShortest(location) {
 
         let hourly = row.insertCell()
         hourly.innerHTML = `${stations[i]['HLY First Year']}-${stations[i]['HLY Last Year']}`
-        if (stations[i]['HLY First Year'] === 'asdf') { //fix later
-            hourly.innerHTML = hourly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="location.href='${createStationURL(stations[i]['Station ID'], stations[i]['HLY Last Year'], 1, 1)}'">Download</button>`
+        if (stations[i]['HLY First Year'] != '') {
+            hourly.innerHTML = hourly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="createWGET(${stations[i]['Station ID']}, ${stations[i]['HLY First Year']}, ${stations[i]['HLY Last Year']}, ${1})">Download</button>`
         }
 
         let daily = row.insertCell()
         daily.innerHTML = `${stations[i]['DLY First Year']}-${stations[i]['DLY Last Year']}`
-        if (stations[i]['DLY First Year'] === 'asdf') { //fix later
-            daily.innerHTML = daily.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="downloadStationData(${stations[i]['Station ID']}, ${stations[i]['DLY First Year']}, ${stations[i]['DLY Last Year']}, ${2})">Download</button>`
+        if (stations[i]['DLY First Year'] != '') {
+            daily.innerHTML = daily.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="createWGET(${stations[i]['Station ID']}, ${stations[i]['DLY First Year']}, ${stations[i]['DLY Last Year']}, ${2})">Download</button>`
         }
 
         let monthly = row.insertCell()
         monthly.innerHTML = `${stations[i]['MLY First Year']}-${stations[i]['MLY Last Year']}`
         if (stations[i]['MLY First Year'] != '') {
-            monthly.innerHTML = monthly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="downloadStationData(${stations[i]['Station ID']}, ${stations[i]['MLY First Year']}, ${stations[i]['MLY Last Year']}, ${3})">Download</button>`
+            monthly.innerHTML = monthly.innerHTML + '<br>' + `<button type="button" class="btn btn-primary btn-sm" onclick="createWGET(${stations[i]['Station ID']}, ${stations[i]['MLY First Year']}, ${stations[i]['MLY Last Year']}, ${3})">Download</button>`
         }
 
         let loc = row.insertCell()
@@ -82,6 +82,34 @@ function calcDistance(coor1, coor2) {
 
 function createStationURL(stationID, year, month, timeframe) {
     return `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=${stationID}&Year=${year}&Month=${month}&Day=14&timeframe=${timeframe}&submit=Download+Data`
+}
+
+function createWGET(stationID, firstYear, lastYear, timeframe){
+    let url = ``
+    let command = ''
+    let timeName = ''
+
+    if (timeframe === 3) {
+        url = `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=${stationID}&Year=2010&Month=1&Day=14&timeframe=${timeframe}&submit=Download+Data`
+        command = 'wget --content-disposition '+ url
+        timeName = 'monthly'
+    } else if (timeframe === 2) {
+        url = `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=${stationID}&Year=\${year}&Month=1&Day=14&timeframe=${timeframe}&submit=Download+Data`
+        command = 
+        `for year in {${firstYear}..${lastYear}} do\n\twget --content-disposition ${url}\ndone`
+        timeName = 'daily'
+    } else if (timeframe === 1) {
+        url = `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=${stationID}&Year=\${year}&Month=\${month}&Day=14&timeframe=${timeframe}&submit=Download+Data`
+        command = 
+        `for year in {${firstYear}..${lastYear}} do\n\tfor month in {1..12} do\n\t\twget --content-disposition ${url}\n\tdone\ndone`
+        timeName = 'hourly'
+    }
+
+    let link = document.createElement('a')
+    link.href = 'data:attachment/txt,' + encodeURI(command)
+    link.target = '_blank'
+    link.download = `${stationID} ${timeName} ${firstYear}-${lastYear}.txt`
+    link.click()
 }
 
 function goToLocation(location) {
