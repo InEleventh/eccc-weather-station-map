@@ -22,3 +22,101 @@ https://sciencing.com/convert-latitude-longtitude-feet-2724.html
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
         integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
         crossorigin=""></script>
+
+https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=1706&Year=${year}&Month=${month}&Day=14&timeframe=2&submit= Download+Data
+
+https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=54239&Year=2020&Month=5&Day=14&timeframe=2&submit=Download+Data
+
+https://github.com/Rob--W/cors-anywhere/
+
+async function test() {
+    var proxyUrl = 'https://cors-anywhere.herokuapp.com/'
+    var all = []
+
+    for (var year = 2018; year <= 2020; year++) {
+        var url = `https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=54239&Year=${year}&Month=5&Day=14&timeframe=2&submit=Download+Data`
+        var response = await fetch(proxyUrl + url)
+        var csvData = await response.text()
+        var data = Papa.parse(csvData, {
+            header: true,
+            complete: function (results) {
+                //add something if needed
+            }
+        })
+        var array = data.data
+        array.pop()
+        all = all.concat(array)
+    }
+    var newCSV = Papa.unparse(all)
+    console.log(newCSV)
+
+    var link = document.createElement('a')
+    link.href = 'data:attachment/csv,' + encodeURI(newCSV)
+    link.target = '_blank'
+    link.download = 'test.csv'
+    link.click()
+}
+
+async function downloadData(stationID, firstYear, lastYear, timeframe) {
+    var proxyUrl = 'https://cors-anywhere.herokuapp.com/'
+    var all = []
+    var fileName = stationID
+    var timeName = ''
+
+    if (timeframe === 3) {
+        var url = createStationURL(stationID, firstYear, 12, timeframe)
+        var response = await fetch(proxyUrl + url)
+        var csvData = await response.text()
+        var data = Papa.parse(csvData, {
+            header: true,
+            complete: function (results) {
+                //add something if needed
+            }
+        })
+        var array = data.data
+        array.pop()
+        all = all.concat(array)
+        timeName = 'monthly'
+    } else if (timeframe === 2) {
+        for (var year = firstYear; year <= lastYear; year++) {
+            var url = createStationURL(stationID, year, 1, timeframe)
+            var response = await fetch(proxyUrl + url)
+            var csvData = await response.text()
+            var data = Papa.parse(csvData, {
+                header: true,
+                complete: function (results) {
+                    //add something if needed
+                }
+            })
+            var array = data.data
+            array.pop()
+            all = all.concat(array)
+        }
+        timeName = 'daily'
+    } else if (timeframe === 1) {
+        for (var year = firstYear; year <= lastYear; year++) {
+            for (var month = 1; month <= 12; month++) {
+                var url = createStationURL(stationID, year, month, timeframe)
+            }
+            var response = await fetch(proxyUrl + url)
+            var csvData = await response.text()
+            var data = Papa.parse(csvData, {
+                header: true,
+                complete: function (results) {
+                    //add something if needed
+                }
+            })
+            var array = data.data
+            array.pop()
+            all = all.concat(array)
+        }
+        timeName = 'hourly'
+    }
+
+    var newCSV = Papa.unparse(all)
+    var link = document.createElement('a')
+    link.href = 'data:attachment/csv,' + encodeURI(newCSV)
+    link.target = '_blank'
+    link.download = `${fileName} ${timeName} ${firstYear}-${lastYear}.csv`
+    link.click()
+}
